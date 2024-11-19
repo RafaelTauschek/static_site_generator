@@ -20,7 +20,6 @@ class TestHTMLNode(unittest.TestCase):
         
         
 class TestParentNode(unittest.TestCase):
-    
     def test_parent_node(self):
         node = ParentNode(
             "p",
