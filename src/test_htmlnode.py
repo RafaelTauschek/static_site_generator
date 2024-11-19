@@ -31,11 +31,8 @@ class TestParentNode(unittest.TestCase):
                 LeafNode(None, "Normal text"),
             ],
         )
-        
-        string = node.to_html()
-        print(string)
-
         self.assertEqual(node.to_html(), "<p><b>Bold text</b>Normal text<i>italic text</i>Normal text</p>")
+        
         
         
 if __name__ == "__main__":
