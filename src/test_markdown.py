@@ -5,7 +5,9 @@ from markdown import (
     extract_markdown_links,
     split_nodes_image,
     split_nodes_link,
-    text_to_textnode
+    text_to_textnode,
+    markdown_to_blocks,
+    block_to_block_type
 )
 
 from textnode import TextNode, TextType
@@ -249,9 +251,59 @@ class TestTextToNodes(unittest.TestCase):
             new_nodes
         )
     
-    
-    
-    
+ 
+class TestMarkdownToBlocks(unittest.TestCase):
+    def test_markdown_to_blocks(self):
+        raw_md = """## Wizard's Guide
+        
+        A wizzard is never late, nor early.
+        
+        * Bring your staff
+        * Pack some lembas bread
+        * Don't forget your hat"""
+
+        blocks = markdown_to_blocks(raw_md)
+        self.assertListEqual(
+            [
+                "## Wizard's Guide",
+                "A wizzard is never late, nor early.",
+                "* Bring your staff\n* Pack some lembas bread\n* Don't forget your hat"
+            ],
+            blocks,
+        )    
+        
+
+class TestBlockToBlockType(unittest.TestCase):
+    def test_block_to_paragraph_type(self):
+        text = "This is just 1. Paragraph without any special type"
+        paragraph = block_to_block_type(text)
+        self.assertEqual("paragraph", paragraph)
+        
+    def test_block_to_heading_type(self):
+        text = "### This is a heading"
+        heading = block_to_block_type(text)
+        self.assertEqual("heading", heading)
+        
+    def test_block_to_code_type(self):
+        text = "```This is a code block```"
+        code = block_to_block_type(text)
+        self.assertEqual("code", code)
+        
+    def test_block_to_quote_type(self):
+        text = ">This is a quote\n>even with\n>newlines"
+        quote = block_to_block_type(text)
+        self.assertEqual("quote", quote)
+        
+    def test_block_to_unordered_list_type(self):
+        text = "* This is an\n- unordered list with\n* or - as character"
+        unordered_list = block_to_block_type(text)
+        self.assertEqual("unordered_list", unordered_list)
+        
+    def test_block_to_ordered_list_type(self):
+        text = "1. This is and ordered\n2. List that increment\n3. The number every time"
+        ordered_list = block_to_block_type(text)
+        self.assertEqual("ordered_list", ordered_list)
+
     
 if __name__ == '__main__':
     unittest.main()

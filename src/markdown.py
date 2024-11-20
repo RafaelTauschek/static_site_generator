@@ -108,3 +108,60 @@ def text_to_textnode(text):
     links = split_nodes_link(code)
     images = split_nodes_image(links)
     return images
+
+def markdown_to_blocks(markdown):
+    blocks = []
+    splitted_by_whitespace = markdown.split('\n')
+    block = ""
+    
+    for i in range(len(splitted_by_whitespace)):
+        cleaned_block = splitted_by_whitespace[i].strip()
+        if cleaned_block != "":
+            if block:
+                block += "\n"
+            block += cleaned_block
+        else:
+            if block != "":
+                blocks.append(block)
+            block = ""
+    if block != "":
+        blocks.append(block)
+    return blocks
+
+
+def block_to_block_type(block):
+    if block.startswith("#"):
+        count = 0
+        for character in block:
+            if character == "#":
+                count += 1
+            else: 
+                break
+        if count <= 6 and block[count] == " ":
+            return "heading"
+        
+    if block.startswith("```") and block[3] != "`" and block.endswith("```") and block[-4] != "`":
+            return "code"
+        
+    if block.startswith(">"):
+        splitted = block.split("\n")
+        for line in splitted:
+            if not line.startswith(">"):
+                break
+        else: return "quote"
+    
+    if block.startswith("*") or block.startswith("-"):
+        splitted = block.split("\n")
+        for line in splitted:
+            if not line.startswith("* ") and not line.startswith("- "):
+                break
+        else: return "unordered_list"
+        
+    if block.startswith("1"):
+        splitted = block.split("\n")
+        for i, line in enumerate(splitted):
+            if not line.startswith(f"{i + 1}. "):
+                break
+        else: return "ordered_list"
+        
+    return "paragraph"
