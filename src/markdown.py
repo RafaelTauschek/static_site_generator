@@ -1,4 +1,5 @@
 from textnode import TextNode, TextType
+from htmlnode import HTMLNode, LeafNode, ParentNode
 import re
 
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
@@ -165,3 +166,83 @@ def block_to_block_type(block):
         else: return "ordered_list"
         
     return "paragraph"
+
+
+def markdown_to_html_node(markdown):
+    blocks = markdown_to_blocks(markdown)
+    html_nodes = []
+    for block in blocks:
+        block_type = block_to_block_type(block)
+        if block_type == "quote":
+            pass
+        if block_type == "unordered_list":
+            unordered_list = unordered_list_to_node(block)
+        if block_type == "ordered_list":
+            ordered_list = ordered_list_to_node(block)
+        if block_type == "code":
+            pass
+        if block_type == "heading":
+            heading = heading_to_node(block)
+            print(heading)
+        if block_type == "paragraph":
+            pass
+
+
+def heading_to_node(text):
+    count = 0
+    
+    for character in text:
+        if character == "#":
+            count += 1
+        else: break
+        
+    header_node = HTMLNode(f"h{count}", text[count+1:])
+    return header_node
+
+
+def ordered_list_to_node(text):
+    splitted_nodes = text.split("\n")
+    list_nodes = []
+    for item_text in splitted_nodes:
+        list_content = item_text[:2]
+        textnode = text_to_textnode(list_content)
+        list_item_node = HTMLNode("li", textnode)
+        list_nodes.append(list_item_node)
+    ordered_list_node = HTMLNode("ol", list_nodes)
+    return ordered_list_node
+
+
+def unordered_list_to_node(text):
+    splitted_nodes = text.split("\n")
+    list_nodes = []
+    for item_text in splitted_nodes:
+        list_content = item_text[:2]
+        textnode = text_to_textnode(list_content)
+        list_item_node = HTMLNode("li", textnode)
+        list_nodes.append(list_item_node)
+    
+    unordered_list_node = HTMLNode("ul", list_nodes)
+    return unordered_list_node
+
+
+        
+markdown = """
+##### This is a Header
+
+This is a paragraph that is inside my markdown
+
+- Here is a list item
+- And another one
+
+> This is a quote Block
+> With something else quoted
+
+Here i present you [a link](https://to.somewhere.com)
+
+Here is a image that ![rick roll](https://i.imgur.com/asdqwdq.gif) rickrolls you.
+
+*Here is a an italic sentence*
+
+**And a bold one at least**"""
+
+markdown_to_html_node(markdown)
