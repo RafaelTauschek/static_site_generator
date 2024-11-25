@@ -1,5 +1,5 @@
-from textnode import TextNode, TextType
-from htmlnode import HTMLNode, LeafNode, ParentNode
+from textnode import TextNode, TextType, text_node_to_html_node
+from htmlnode import ParentNode
 import re
 
 def split_nodes_delimiter(old_nodes, delimiter, text_type):
@@ -168,24 +168,55 @@ def block_to_block_type(block):
     return "paragraph"
 
 
+def text_to_children(text):
+    nodes = text_to_textnode(text)
+    children = []
+    for node in nodes:
+        html_node = text_node_to_html_node(node)
+        children.append(html_node)
+    return children
+
 def markdown_to_html_node(markdown):
     blocks = markdown_to_blocks(markdown)
     html_nodes = []
     for block in blocks:
         block_type = block_to_block_type(block)
         if block_type == "quote":
-            pass
-        if block_type == "unordered_list":
-            unordered_list = unordered_list_to_node(block)
-        if block_type == "ordered_list":
-            ordered_list = ordered_list_to_node(block)
-        if block_type == "code":
-            pass
-        if block_type == "heading":
-            heading = heading_to_node(block)
-            print(heading)
-        if block_type == "paragraph":
-            pass
+            html_nodes.append(quote_to_node(block))
+        elif block_type == "unordered_list":
+            html_nodes.append(unordered_list_to_node(block))
+        elif block_type == "ordered_list":
+            html_nodes.append(ordered_list_to_node(block))
+        elif block_type == "code":
+            html_nodes.append(code_to_node(block))
+        elif block_type == "heading":
+            html_nodes.append(heading_to_node(block))
+        else:
+            html_nodes.append(paragraph_to_node(block))
+
+    return ParentNode("div", html_nodes)
+
+def quote_to_node(text):
+    quote_lines = []
+    for line in text.split('\n'):
+        if line.startswith('>'):
+            clean_line = line[1:].strip()
+            if clean_line:
+                quote_lines.append(clean_line)
+    quote_text = ' '.join(quote_lines)
+    return ParentNode("blockquote", text_to_children(quote_text))
+
+def code_to_node(text):
+    text = text[4:-3]
+    children = text_to_children(text)
+    code = ParentNode("code", children)
+    return ParentNode("pre", [code])
+    
+
+def paragraph_to_node(text):
+    splitted_nodes = text.split("\n")
+    paragraph = " ".join(splitted_nodes)
+    return ParentNode("p", text_to_children(paragraph))
 
 
 def heading_to_node(text):
@@ -196,53 +227,24 @@ def heading_to_node(text):
             count += 1
         else: break
         
-    header_node = HTMLNode(f"h{count}", text[count+1:])
-    return header_node
+    clean_text = text[count + 1:].strip()
+    return ParentNode(f"h{count}", text_to_children(clean_text))
 
 
 def ordered_list_to_node(text):
     splitted_nodes = text.split("\n")
     list_nodes = []
     for item_text in splitted_nodes:
-        list_content = item_text[:2]
-        textnode = text_to_textnode(list_content)
-        list_item_node = HTMLNode("li", textnode)
-        list_nodes.append(list_item_node)
-    ordered_list_node = HTMLNode("ol", list_nodes)
-    return ordered_list_node
+        list_content = item_text[2:].strip()
+        list_nodes.append(ParentNode("li", text_to_children(list_content)))
+    return ParentNode("ol", list_nodes)
 
 
 def unordered_list_to_node(text):
     splitted_nodes = text.split("\n")
     list_nodes = []
     for item_text in splitted_nodes:
-        list_content = item_text[:2]
-        textnode = text_to_textnode(list_content)
-        list_item_node = HTMLNode("li", textnode)
-        list_nodes.append(list_item_node)
-    
-    unordered_list_node = HTMLNode("ul", list_nodes)
-    return unordered_list_node
-
-
-        
-markdown = """
-##### This is a Header
-
-This is a paragraph that is inside my markdown
-
-- Here is a list item
-- And another one
-
-> This is a quote Block
-> With something else quoted
-
-Here i present you [a link](https://to.somewhere.com)
-
-Here is a image that ![rick roll](https://i.imgur.com/asdqwdq.gif) rickrolls you.
-
-*Here is a an italic sentence*
-
-**And a bold one at least**"""
-
-markdown_to_html_node(markdown)
+        if item_text.startswith("* ") or item_text.startswith("- "):
+            list_content = item_text[2:].strip()
+            list_nodes.append(ParentNode("li", text_to_children(list_content)))
+    return ParentNode("ul", list_nodes)
