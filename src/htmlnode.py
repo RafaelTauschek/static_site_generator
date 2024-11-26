@@ -13,7 +13,7 @@ class HTMLNode:
             return ""
         props_html = ""
         for prop in  self.props:
-            props_html += f'{prop}="{self.props[prop]}"'
+            props_html += f' {prop}="{self.props[prop]}"'
         return props_html
     
     def __repr__(self):
@@ -39,7 +39,7 @@ class ParentNode(HTMLNode):
     
 class LeafNode(HTMLNode):
     def __init__(self, tag, value, props=None):
-        super().__init__(tag, value, props)
+        super().__init__(tag, value, None, props)
         
         
     def to_html(self):
